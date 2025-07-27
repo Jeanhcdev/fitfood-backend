@@ -143,15 +143,34 @@ REST_FRAMEWORK = {
     ]
 }
 
-# CONFIGURACIÓN DE CORS
+# --- CONFIGURACIÓN DE CORS (Dinámica para Local y Producción) ---
+
+# Orígenes permitidos para el desarrollo local
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # El puerto por defecto de Vite para React
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-CORS_ALLOW_ALL_ORIGINS = False # Por seguridad
+
+# Comprueba si la variable de entorno de Render existe
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    # Añade la URL del frontend de Netlify a la lista de confianza
+    # Asegúrate de que la variable 'CORS_ALLOWED_ORIGINS' en Render esté configurada
+    # con la URL de tu sitio de Netlify, por ejemplo: https://fitfoodsalud.netlify.app
+    netlify_app_url = os.environ.get('CORS_ALLOWED_ORIGINS')
+    if netlify_app_url:
+        CORS_ALLOWED_ORIGINS.append(netlify_app_url)
+
+# Lista de dominios de confianza para peticiones seguras (POST, PUT, etc.)
 CSRF_TRUSTED_ORIGINS = [
-# Añadiremos la URL de Render aquí más tarde
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
+if RENDER_EXTERNAL_HOSTNAME:
+    # Añade la URL del backend de Render a la lista de confianza
+    render_backend_url = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+    CSRF_TRUSTED_ORIGINS.append(render_backend_url)
+
 
 # Configuración para archivos multimedia subidos por usuarios
 MEDIA_URL = '/media/'
