@@ -16,3 +16,6 @@ tzdata==2025.2
 virtualenv==20.32.0
 virtualenvwrapper-win==1.2.7
 wheel==0.45.1
+gunicorn
+dj-database-url
+psycopg2-binary
