@@ -60,8 +60,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 # --- Serializers de Productos y Pedidos ---
 class ProductoSerializer(serializers.ModelSerializer):
-    # Esta línea es la clave para que se genere la URL completa
-    imagen = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = Producto
@@ -71,7 +69,7 @@ class ProductoSerializer(serializers.ModelSerializer):
             'descripcion', 
             'precio_venta', 
             'categoria',
-            'imagen',  # <-- El campo de imagen
+            'imagen_url',  # <-- El campo de imagen
             'disponible', 
             'fecha_creacion', 
             'fecha_actualizacion'
