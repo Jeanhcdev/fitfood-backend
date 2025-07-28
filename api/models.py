@@ -70,6 +70,11 @@ class Menu(models.Model):
     
     # Este es el campo clave. Crea una relación de "muchos a muchos" con el modelo Producto.
     productos = models.ManyToManyField(Producto, verbose_name="Productos en el Menú")
+    es_destacado = models.BooleanField(
+        default=False,
+        verbose_name="¿Es el menú destacado en la página principal?",
+        help_text="Marca solo un menú como destacado. Este será el que se muestre en la web."
+    )
 
     class Meta:
         verbose_name = "Menú"

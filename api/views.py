@@ -1,6 +1,8 @@
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
 from django.contrib.auth.models import User
 from .models import Producto, Pedido, DetallePedido, Plan, Menu
 from .serializers import RegisterSerializer, UserSerializer, ProductoSerializer, PedidoSerializer, PlanSerializer, MenuSerializer
@@ -64,4 +66,28 @@ class MenuListView(generics.ListAPIView):
     serializer_class = MenuSerializer
     permission_classes = [AllowAny]
 
-# El DetallePedido ahora se gestiona a través del PedidoViewSet, por lo que no necesita su propio ViewSet.
+class FeaturedMenuView(APIView):
+    """
+    Devuelve el único menú que está marcado como 'es_destacado'.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # Intenta encontrar el primer menú que sea destacado
+            menu_destacado = Menu.objects.get(es_destacado=True)
+            # Usa el serializador que ya creamos
+            serializer = MenuSerializer(menu_destacado, context={'request': request})
+            return Response(serializer.data)
+        except Menu.DoesNotExist:
+            # Si no se encuentra ningún menú destacado
+            return Response(
+                {"error": "No hay un menú destacado configurado."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Menu.MultipleObjectsReturned:
+            # Si accidentalmente se marcaron varios menús como destacados
+            return Response(
+                {"error": "Hay múltiples menús destacados configurados. Solo debe haber uno."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

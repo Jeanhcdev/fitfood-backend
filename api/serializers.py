@@ -69,6 +69,7 @@ class ProductoSerializer(serializers.ModelSerializer):
             'descripcion', 
             'precio_venta', 
             'categoria',
+            'calories',
             'imagen_url',  # <-- El campo de imagen
             'disponible', 
             'fecha_creacion', 
