@@ -3,9 +3,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from django.contrib.auth.models import User
-from .models import Producto, Pedido, DetallePedido, Plan, Menu
-from .serializers import RegisterSerializer, UserSerializer, ProductoSerializer, PedidoSerializer, PlanSerializer, MenuSerializer
+from .models import Producto, Plan, Menu, Resena
+from .serializers import ProductoSerializer,PlanSerializer, MenuSerializer, ResenaSerializer
 
 class MenuDetailView(generics.RetrieveAPIView):
     """
@@ -15,51 +14,16 @@ class MenuDetailView(generics.RetrieveAPIView):
     serializer_class = MenuSerializer
     permission_classes = [AllowAny] # Permite que cualquiera vea el menú
 
-
-class RegisterView(generics.CreateAPIView):
-    """
-    Vista para registrar nuevos usuarios.
-    Accesible por cualquiera (AllowAny).
-    """
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializer
-
-class MeView(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = UserSerializer
-
-    def get_object(self):
-        return self.request.user
-
-class ClienteViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
-
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all().order_by('-fecha_creacion')
     serializer_class = ProductoSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-class PedidoViewSet(viewsets.ModelViewSet):
-    serializer_class = PedidoSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return Pedido.objects.all().order_by('-fecha_pedido')
-        return Pedido.objects.filter(cliente=self.request.user).order_by('-fecha_pedido')
-
-    def perform_create(self, serializer):
-        serializer.save(cliente=self.request.user)
 
 class PlanListView(generics.ListAPIView):
     # Ahora solo obtenemos los planes donde is_active es verdadero
     queryset = Plan.objects.filter(is_active=True) 
     serializer_class = PlanSerializer
     permission_classes = [AllowAny]
-
 
 class MenuListView(generics.ListAPIView):
     queryset = Menu.objects.all()
@@ -91,3 +55,22 @@ class FeaturedMenuView(APIView):
                 {"error": "Hay múltiples menús destacados configurados. Solo debe haber uno."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+class ResenaListView(generics.ListAPIView):
+    """
+    Vista para LISTAR solo las reseñas que han sido aprobadas.
+    El frontend usará esta vista para mostrar los testimonios.
+    """
+    # El queryset solo incluye reseñas donde el campo 'aprobado' es True.
+    queryset = Resena.objects.filter(aprobado=True)
+    serializer_class = ResenaSerializer
+    permission_classes = [AllowAny] # Cualquiera puede ver las reseñas aprobadas.
+
+class ResenaCreateView(generics.CreateAPIView):
+    """
+    Vista para que CUALQUIER usuario pueda CREAR una nueva reseña.
+    La reseña se guardará como 'aprobado=False' por defecto.
+    """
+    queryset = Resena.objects.all()
+    serializer_class = ResenaSerializer
+    permission_classes = [AllowAny] # Cualquiera puede enviar una reseña.

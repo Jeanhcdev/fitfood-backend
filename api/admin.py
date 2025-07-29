@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Plan , Producto, Menu, Categoria 
+from .models import Plan , Producto, Menu, Categoria, Resena
 
 
 
@@ -30,9 +30,19 @@ class MenuAdmin(admin.ModelAdmin):
         
         # Devolvemos el campo con el queryset modificado
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+    
+@admin.register(Resena)
+class ResenaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'instagram', 'calificacion', 'aprobado', 'fecha_creacion')
+    list_filter = ('aprobado', 'calificacion')
+    actions = ['aprobar_reseñas']
+
+    def aprobar_resenas(self, request, queryset):
+        queryset.update(aprobado=True)
+    aprobar_resenas.short_description = "Aprobar reseñas seleccionadas"
+
 
 
 # --- Registra los otros modelos de forma simple si no necesitan personalización ---
 admin.site.register(Plan)
 admin.site.register(Categoria)
-# admin.site.register(Producto) 

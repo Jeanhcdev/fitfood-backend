@@ -1,18 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
-class ClienteProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    telefono = models.CharField(max_length=20, blank=True)
-    direccion_principal = models.TextField(blank=True)
-    def __str__(self):
-        return self.user.username
-
-
+"""Representa una categoría de producto, como 'Plato Principal', 'Ensalada', etc."""
 class Categoria(models.Model):
-    """
-    Representa una categoría de producto, como 'Plato Principal', 'Ensalada', etc.
-    """
+    
     nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la Categoría")
 
     class Meta:
@@ -22,7 +13,7 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
-
+"""Representa un producto"""
 class Producto(models.Model):
     
     nombre = models.CharField(max_length=150)
@@ -39,33 +30,10 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre
 
-class Pedido(models.Model):
-    ESTADOS = [
-        ('RECIBIDO', 'Recibido'), ('EN_PREP', 'En preparación'),
-        ('EN_CAMINO', 'En camino'), ('ENTREGADO', 'Entregado'),
-        ('CANCELADO', 'Cancelado'),
-    ]
-    cliente = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha_pedido = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=10, choices=ESTADOS, default='RECIBIDO')
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    direccion_entrega = models.TextField()
-    notas_cliente = models.TextField(blank=True)
-    def __str__(self):
-        return f"Pedido #{self.id} de {self.cliente.username}"
 
-class DetallePedido(models.Model):
-    pedido = models.ForeignKey(Pedido, related_name='detalles', on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    def __str__(self):
-        return f"{self.cantidad} x {self.producto.nombre} en Pedido #{self.pedido.id}"
-
+"""Representa un menú que agrupa varios productos."""
 class Menu(models.Model):
-    """
-    Representa un menú semanal o diario que agrupa varios productos.
-    """
+
     name = models.CharField(max_length=100, verbose_name="Nombre del Menú")
     
     # Este es el campo clave. Crea una relación de "muchos a muchos" con el modelo Producto.
@@ -84,6 +52,7 @@ class Menu(models.Model):
         # El __str__ debe representar al objeto actual, en este caso, el menú.
         return self.name
 
+"""Representa un plan"""
 class Plan(models.Model):
     # --- Campos de Identificación ---
     name = models.CharField(max_length=100, verbose_name="Nombre del Plan")
@@ -125,4 +94,25 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.name
+    
+"""Representa una reseña"""
+class Resena(models.Model):
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del Cliente")
+    instagram = models.CharField(max_length=100, blank=True, verbose_name="Usuario de Instagram")
+    comentario = models.TextField(verbose_name="Comentario")
+    calificacion = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name="Calificación (1-5)"
+    )
+    aprobado = models.BooleanField(default=False, verbose_name="¿Aprobado para mostrar?")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Reseña"
+        verbose_name_plural = "Reseñas"
+        ordering = ['-fecha_creacion'] # Muestra las más nuevas primero
+
+    def __str__(self):
+        return f"Reseña de {self.nombre} - {self.calificacion} estrellas"
+
 
